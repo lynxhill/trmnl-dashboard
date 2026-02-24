@@ -2,7 +2,7 @@ export default async function handler(req, res) {
 
   const ICS_URL = process.env.ICS_URL;
   const WEATHER_KEY = process.env.WEATHER_KEY;
-  const CITY = "Turku";
+  const CITY = "Pori";
 
   // Fetch weather
   const weatherRes = await fetch(
