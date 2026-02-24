@@ -6,12 +6,12 @@ export default async function handler(req, res) {
 
   // ---- FETCH WEATHER ----
   const weatherRes = await fetch(
-    `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&appid=${WEATHER_KEY}`
+  `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&lang=fi&appid=${WEATHER_KEY}`
   );
   const weather = await weatherRes.json();
 
   const iconCode = weather.weather[0].icon;
-  const iconUrl = `https://openweathermap.org/img/2x/${iconCode}.png`;
+  const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 
   // ---- FETCH RSS ----
   const feedRes = await fetch(RSS_URL);
