@@ -76,7 +76,9 @@ export default async function handler(req, res) {
     }
 
     .icon {
-      margin: 10px 0;
+    margin: 10px 0;
+    background: #DDDDDD;
+    padding: 10px;
     }
 
     .icon img {
