@@ -68,8 +68,10 @@ export default async function handler(req, res) {
     .weather {
       width: 30%;
       text-align: right;
+      background: #DDDDDD;   /* sama vaalea harmaa */
+      padding: 20px;
     }
-
+    
     .location {
       font-size: 22px;
       font-weight: bold;
