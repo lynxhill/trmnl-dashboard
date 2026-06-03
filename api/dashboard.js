@@ -228,7 +228,7 @@ export default async function handler(req, res) {
 
     body {
       font-family: sans-serif;
-      padding: 30px;
+      padding: 20px;
       display: flex;
       justify-content: space-between;
     }
