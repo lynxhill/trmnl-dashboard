@@ -234,7 +234,7 @@ export default async function handler(req, res) {
     }
 
     .menu {
-      width: 73%;
+      width: 80%;
     }
 
     .section-title {
@@ -261,7 +261,7 @@ export default async function handler(req, res) {
     }
 
     .weather {
-      width: 20%;
+      width: 18%;
       text-align: right;
       background: #DDDDDD;
       padding: 20px;
@@ -295,7 +295,7 @@ export default async function handler(req, res) {
     }
 
     .diak {
-      margin-top: 24px;
+      margin-top: 20px;
     }
 
     .diak ul {
@@ -310,7 +310,7 @@ export default async function handler(req, res) {
 
     .menu-list {
       margin: 0;
-      padding-left: 18px;
+      padding-left: 10px;
     }
 
     .menu-list li {
