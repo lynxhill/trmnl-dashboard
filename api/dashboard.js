@@ -187,8 +187,10 @@ export default async function handler(req, res) {
         .map(m =>
           m[1]
             .replace(/<[^>]+>/g, "")
+            .replace(/\s+(LGM|LG|L|G|M|VEG|VEGAN)\s*$/gi, "")
             .trim()
         )
+                
         .filter(Boolean);
 
       const start = pTags.findIndex(
