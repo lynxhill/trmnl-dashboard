@@ -21,10 +21,18 @@ export default async function handler(req, res) {
     // poista tähdet
     .replace(/\*/g, "")
 
+    // siisti otsikot
+    .replace(/^Lounas\s*1\s*:/i, "1: ")
+    .replace(/^Lounas\s*2\s*:/i, "2: ")
+    .replace(/^Kasvislounas\s*:/i, "Kasvis: ")
+    .replace(/^Salaattilounas\s*:/i, "Salaatti: ")
+    .replace(/^Jälkiruoka\s*:/i, "Jälkiruoka: ")
+    .replace(/^Kahvio\s+Mocca\s+annossalaatti\s*:/i, "Mocca: ")
+    
     // poista yleiset lisukkeet
     //.replace(/,\s*Sitruunakastike/gi, "")
-    .replace(/,\s*lounas/gi, "")
-    .replace(/,\s*Lounas/gi, "")
+    // .replace(/,\s*lounas/gi, "")
+    // .replace(/,\s*Lounas/gi, "")
     //.replace(/,\s*Perunasose/gi, "")
     //.replace(/,\s*Perunat/gi, "")
     //.replace(/,\s*Riisi/gi, "")
