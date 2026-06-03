@@ -234,16 +234,16 @@ export default async function handler(req, res) {
     }
 
     .menu {
-      width: 80%;
+      width: 78%;
     }
 
     .section-title {
       font-size: 24px;
-      margin-bottom: 15px;
+      margin-bottom: 13px;
     }
 
     .item {
-      margin-bottom: 16px;
+      margin-bottom: 13px;
       padding-bottom: 10px;
       border-bottom: 2px solid black;
     }
@@ -295,7 +295,7 @@ export default async function handler(req, res) {
     }
 
     .diak {
-      margin-top: 20px;
+      margin-top: 16px;
     }
 
     .diak ul {
