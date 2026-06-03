@@ -10,6 +10,28 @@ export default async function handler(req, res) {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
   }
+  
+  function simplifyMenuLine(line = "") {
+
+  return line
+
+    // poista allergeenit
+    .replace(/\([^)]*\)/g, "")
+
+    // poista tähdet
+    .replace(/\*/g, "")
+
+    // poista yleiset lisukkeet
+    .replace(/,\s*Sitruunakastike/gi, "")
+    .replace(/,\s*Sitrunakastike/gi, "")
+    .replace(/,\s*Perunasose/gi, "")
+    .replace(/,\s*Perunat/gi, "")
+    .replace(/,\s*Riisi/gi, "")
+
+    // siisti välit
+    .replace(/\s+/g, " ")
+    .trim();
+    }
 
   async function safeFetch(url, timeout = 5000) {
     const controller = new AbortController();
@@ -67,34 +89,39 @@ export default async function handler(req, res) {
   }
 
   async function fetchHospitalMenu() {
+
     try {
 
       const response = await safeFetch(RSS_URL);
 
       const xml = await response.text();
 
-      const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)]
-        .slice(0, 3)
-        .map(block => {
+      const firstItem =
+        [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)][0];
 
-          const title =
-            block[1].match(/<title>(.*?)<\/title>/)?.[1] ?? "";
+      if (!firstItem) {
+        return [];
+      }
 
-          let desc =
-            block[1].match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? "";
+      const title =
+        firstItem[1].match(/<title>(.*?)<\/title>/)?.[1] ?? "";
 
-          desc = desc.replace(/<!\[CDATA\[|\]\]>/g, "");
-          desc = desc.replace(/<br\s*\/?>/gi, "\n");
-          desc = desc.replace(/<[^>]+>/g, "");
-          desc = desc.trim();
+      let desc =
+        firstItem[1].match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? "";
 
-          return {
-            title,
-            desc
-          };
-        });
+      desc = desc.replace(/<!\[CDATA\[|\]\]>/g, "");
+      desc = desc.replace(/<br\s*\/?>/gi, "\n");
+      desc = desc.replace(/<[^>]+>/g, "");
 
-      return items;
+      const lines = desc
+        .split("\n")
+        .map(x => simplifyMenuLine(x))
+        .filter(Boolean);
+
+      return [{
+        title,
+        lines
+      }];
 
     } catch (err) {
 
@@ -102,11 +129,13 @@ export default async function handler(req, res) {
 
       return [{
         title: "Tyrni",
-        desc: "Ruokalistaa ei saatavilla"
+        lines: ["Ruokalistaa ei saatavilla"]
       }];
     }
   }
+    
 
+    
   async function fetchDiakMenu() {
 
     try {
@@ -205,7 +234,7 @@ export default async function handler(req, res) {
     }
 
     .menu {
-      width: 65%;
+      width: 73%;
     }
 
     .section-title {
@@ -232,14 +261,14 @@ export default async function handler(req, res) {
     }
 
     .weather {
-      width: 30%;
+      width: 23%;
       text-align: right;
       background: #DDDDDD;
       padding: 20px;
     }
 
     .location {
-      font-size: 22px;
+      font-size: 18px;
       font-weight: bold;
     }
 
@@ -250,18 +279,18 @@ export default async function handler(req, res) {
     }
 
     .icon img {
-      width: 100px;
+      width: 80px;
       filter: grayscale(100%) contrast(200%);
     }
 
     .temp {
-      font-size: 58px;
+      font-size: 42px;
       font-weight: bold;
       margin: 10px 0;
     }
 
     .details {
-      font-size: 16px;
+      font-size: 13px;
       line-height: 1.5;
     }
 
@@ -279,6 +308,17 @@ export default async function handler(req, res) {
       font-size: 15px;
     }
 
+    .menu-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .menu-list li {
+      margin-bottom: 8px;
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
   </style>
   </head>
 
@@ -292,13 +332,17 @@ export default async function handler(req, res) {
 
       ${hospitalMenu.map(item => `
         <div class="item">
+
           <div class="title">
             ${escapeHtml(item.title)}
           </div>
 
-          <div class="desc">
-            ${escapeHtml(item.desc)}
-          </div>
+          <ul class="menu-list">
+            ${item.lines.map(line => `
+              <li>${escapeHtml(line)}</li>
+            `).join("")}
+          </ul>
+
         </div>
       `).join("")}
 
