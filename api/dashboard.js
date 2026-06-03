@@ -23,7 +23,8 @@ export default async function handler(req, res) {
 
     // poista yleiset lisukkeet
     //.replace(/,\s*Sitruunakastike/gi, "")
-    //.replace(/,\s*Sitrunakastike/gi, "")
+    .replace(/,\s*lounas/gi, "")
+    .replace(/,\s*Lounas/gi, "")
     //.replace(/,\s*Perunasose/gi, "")
     //.replace(/,\s*Perunat/gi, "")
     //.replace(/,\s*Riisi/gi, "")
