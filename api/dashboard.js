@@ -261,7 +261,7 @@ export default async function handler(req, res) {
     }
 
     .weather {
-      width: 23%;
+      width: 20%;
       text-align: right;
       background: #DDDDDD;
       padding: 20px;
@@ -279,7 +279,7 @@ export default async function handler(req, res) {
     }
 
     .icon img {
-      width: 80px;
+      width: 100px;
       filter: grayscale(100%) contrast(200%);
     }
 
