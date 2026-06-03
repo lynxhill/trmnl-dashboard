@@ -234,7 +234,7 @@ export default async function handler(req, res) {
     }
 
     .menu {
-      width: 78%;
+      width: 75%;
     }
 
     .section-title {
@@ -261,7 +261,7 @@ export default async function handler(req, res) {
     }
 
     .weather {
-      width: 18%;
+      width: 17%;
       text-align: right;
       background: #DDDDDD;
       padding: 20px;
