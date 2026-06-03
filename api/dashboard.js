@@ -4,31 +4,191 @@ export default async function handler(req, res) {
   const WEATHER_KEY = process.env.WEATHER_KEY;
   const CITY = "Pori";
 
-  // ---- FETCH WEATHER ----
-  const weatherRes = await fetch(
-  `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&lang=fi&appid=${WEATHER_KEY}`
-  );
-  const weather = await weatherRes.json();
+  function escapeHtml(str = "") {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
 
-  const iconCode = weather.weather[0].icon;
-  const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+  async function safeFetch(url, timeout = 5000) {
+    const controller = new AbortController();
 
-  // ---- FETCH RSS ----
-  const feedRes = await fetch(RSS_URL);
-  const xml = await feedRes.text();
+    const id = setTimeout(() => {
+      controller.abort();
+    }, timeout);
 
-  const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)]
-    .slice(0, 5)
-    .map(block => {
-      const title = block[1].match(/<title>(.*?)<\/title>/)?.[1] ?? "";
-      let desc = block[1].match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? "";
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal
+      });
 
-      desc = desc.replace(/<!\[CDATA\[|\]\]>/g, "");
-      desc = desc.replace(/<br\s*\/?>/gi, "\n");
-      desc = desc.replace(/<[^>]+>/g, "");
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
 
-      return { title, desc };
-    });
+      return response;
+    } finally {
+      clearTimeout(id);
+    }
+  }
+
+  async function fetchWeather() {
+    try {
+
+      const response = await safeFetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&lang=fi&appid=${WEATHER_KEY}`
+      );
+
+      const weather = await response.json();
+
+      return {
+        ok: true,
+        name: weather?.name ?? CITY,
+        icon: weather?.weather?.[0]?.icon ?? null,
+        description: weather?.weather?.[0]?.description ?? "",
+        temp: Math.round(weather?.main?.temp ?? 0),
+        feelsLike: Math.round(weather?.main?.feels_like ?? 0),
+        tempMin: Math.round(weather?.main?.temp_min ?? 0),
+        tempMax: Math.round(weather?.main?.temp_max ?? 0),
+        wind: weather?.wind?.speed ?? "-",
+        humidity: weather?.main?.humidity ?? "-"
+      };
+
+    } catch (err) {
+
+      console.error("Weather fetch failed:", err);
+
+      return {
+        ok: false,
+        name: CITY
+      };
+    }
+  }
+
+  async function fetchHospitalMenu() {
+    try {
+
+      const response = await safeFetch(RSS_URL);
+
+      const xml = await response.text();
+
+      const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)]
+        .slice(0, 3)
+        .map(block => {
+
+          const title =
+            block[1].match(/<title>(.*?)<\/title>/)?.[1] ?? "";
+
+          let desc =
+            block[1].match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? "";
+
+          desc = desc.replace(/<!\[CDATA\[|\]\]>/g, "");
+          desc = desc.replace(/<br\s*\/?>/gi, "\n");
+          desc = desc.replace(/<[^>]+>/g, "");
+          desc = desc.trim();
+
+          return {
+            title,
+            desc
+          };
+        });
+
+      return items;
+
+    } catch (err) {
+
+      console.error("RSS fetch failed:", err);
+
+      return [{
+        title: "Tyrni",
+        desc: "Ruokalistaa ei saatavilla"
+      }];
+    }
+  }
+
+  async function fetchDiakMenu() {
+
+    try {
+
+      const response = await safeFetch(
+        "https://www.diakon.fi/juhla/lounas/"
+      );
+
+      const html = await response.text();
+
+      const weekdays = [
+        "sunnuntai",
+        "maanantai",
+        "tiistai",
+        "keskiviikko",
+        "torstai",
+        "perjantai",
+        "lauantai"
+      ];
+
+      const today = weekdays[new Date().getDay()];
+
+      const blocks = [
+        ...html.matchAll(
+          /<div class="content-lunch">([\s\S]*?)<\/div><!-- \.content-lunch -->/g
+        )
+      ];
+
+      const todayBlock = blocks.find(block =>
+        block[1].toLowerCase().includes(`<h3>${today}`)
+      );
+
+      if (!todayBlock) {
+        return ["Ruokalistaa ei löytynyt"];
+      }
+
+      const pTags = [
+        ...todayBlock[1].matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)
+      ]
+        .map(m =>
+          m[1]
+            .replace(/<[^>]+>/g, "")
+            .trim()
+        )
+        .filter(Boolean);
+
+      const start = pTags.findIndex(
+        x => x === "Pihlajasali"
+      );
+
+      const end = pTags.findIndex(
+        x => x.includes("********")
+      );
+
+      if (start === -1) {
+        return ["Ruokalistaa ei löytynyt"];
+      }
+
+      return pTags.slice(
+        start + 1,
+        end > start ? end : undefined
+      );
+
+    } catch (err) {
+
+      console.error("Diak fetch failed:", err);
+
+      return ["Ruokalistaa ei saatavilla"];
+    }
+  }
+
+  const [weather, hospitalMenu, diakMenu] =
+    await Promise.all([
+      fetchWeather(),
+      fetchHospitalMenu(),
+      fetchDiakMenu()
+    ]);
+
+  const iconUrl =
+    weather.ok && weather.icon
+      ? `https://openweathermap.org/img/wn/${weather.icon}@2x.png`
+      : null;
 
   res.setHeader("Content-Type", "text/html");
 
@@ -36,6 +196,7 @@ export default async function handler(req, res) {
   <html>
   <head>
   <style>
+
     body {
       font-family: sans-serif;
       padding: 30px;
@@ -47,40 +208,45 @@ export default async function handler(req, res) {
       width: 65%;
     }
 
+    .section-title {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
     .item {
-      margin-bottom: 20px;
-      padding-bottom: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
       border-bottom: 2px solid black;
     }
 
     .title {
       font-weight: bold;
-      font-size: 20px;
+      font-size: 18px;
       margin-bottom: 6px;
     }
 
     .desc {
       font-size: 15px;
-      line-height: 1.5;
+      line-height: 1.4;
       white-space: pre-line;
     }
 
     .weather {
       width: 30%;
       text-align: right;
-      background: #DDDDDD;   /* sama vaalea harmaa */
+      background: #DDDDDD;
       padding: 20px;
     }
-    
+
     .location {
       font-size: 22px;
       font-weight: bold;
     }
 
     .icon {
-    margin: 10px 0;
-    background: #DDDDDD;
-    padding: 10px;
+      margin: 10px 0;
+      background: #DDDDDD;
+      padding: 10px;
     }
 
     .icon img {
@@ -96,40 +262,90 @@ export default async function handler(req, res) {
 
     .details {
       font-size: 16px;
-      line-height: 1.6;
+      line-height: 1.5;
+    }
+
+    .diak {
+      margin-top: 24px;
+    }
+
+    .diak ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .diak li {
+      margin-bottom: 6px;
+      font-size: 15px;
     }
 
   </style>
   </head>
+
   <body>
 
     <div class="menu">
-      <h2>Lounaslista</h2>
 
-      ${items.map(i => `
+      <div class="section-title">
+        Tyrni
+      </div>
+
+      ${hospitalMenu.map(item => `
         <div class="item">
-          <div class="title">${i.title}</div>
-          <div class="desc">${i.desc}</div>
+          <div class="title">
+            ${escapeHtml(item.title)}
+          </div>
+
+          <div class="desc">
+            ${escapeHtml(item.desc)}
+          </div>
         </div>
       `).join("")}
+
+      <div class="diak">
+
+        <div class="section-title">
+          Pihlajasali
+        </div>
+
+        <ul>
+          ${diakMenu.map(row => `
+            <li>${escapeHtml(row)}</li>
+          `).join("")}
+        </ul>
+
+      </div>
+
     </div>
 
     <div class="weather">
-      <div class="location">${weather.name}</div>
 
-      <div class="icon">
-        <img src="${iconUrl}" />
+      <div class="location">
+        ${escapeHtml(weather.name)}
       </div>
 
-      <div class="temp">${Math.round(weather.main.temp)}°C</div>
+      ${iconUrl ? `
+        <div class="icon">
+          <img src="${iconUrl}" />
+        </div>
 
-      <div class="details">
-        Tuntuu kuin: ${Math.round(weather.main.feels_like)}°C<br>
-        Min / Max: ${Math.round(weather.main.temp_min)}° / ${Math.round(weather.main.temp_max)}°<br>
-        Tuuli: ${weather.wind.speed} m/s<br>
-        Kosteus: ${weather.main.humidity}%<br>
-        ${weather.weather[0].description}
-      </div>
+        <div class="temp">
+          ${weather.temp}°C
+        </div>
+
+        <div class="details">
+          Tuntuu kuin: ${weather.feelsLike}°C<br>
+          Min / Max: ${weather.tempMin}° / ${weather.tempMax}°<br>
+          Tuuli: ${weather.wind} m/s<br>
+          Kosteus: ${weather.humidity}%<br>
+          ${escapeHtml(weather.description)}
+        </div>
+      ` : `
+        <div class="details">
+          Säätietoja ei saatavilla
+        </div>
+      `}
+
     </div>
 
   </body>
