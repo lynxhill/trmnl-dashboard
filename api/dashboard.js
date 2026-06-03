@@ -22,11 +22,11 @@ export default async function handler(req, res) {
     .replace(/\*/g, "")
 
     // poista yleiset lisukkeet
-    .replace(/,\s*Sitruunakastike/gi, "")
-    .replace(/,\s*Sitrunakastike/gi, "")
-    .replace(/,\s*Perunasose/gi, "")
-    .replace(/,\s*Perunat/gi, "")
-    .replace(/,\s*Riisi/gi, "")
+    //.replace(/,\s*Sitruunakastike/gi, "")
+    //.replace(/,\s*Sitrunakastike/gi, "")
+    //.replace(/,\s*Perunasose/gi, "")
+    //.replace(/,\s*Perunat/gi, "")
+    //.replace(/,\s*Riisi/gi, "")
 
     // siisti välit
     .replace(/\s+/g, " ")
