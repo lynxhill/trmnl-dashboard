@@ -268,6 +268,7 @@ export default async function handler(req, res) {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
+      gap: 40px;
       margin-bottom: 10px;
     }  
 
