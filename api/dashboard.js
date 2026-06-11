@@ -144,85 +144,105 @@ export default async function handler(req, res) {
   }
     
 
-    
-  async function fetchDiakMenu() {
+
+  async function fetchNesteMenu() {
 
     try {
 
       const response = await safeFetch(
-        "https://www.diakon.fi/juhla/lounas/"
+        "https://www.nestetiilimaki.fi/"
       );
 
       const html = await response.text();
 
-      const weekdays = [
-        "sunnuntai",
-        "maanantai",
-        "tiistai",
-        "keskiviikko",
-        "torstai",
-        "perjantai",
-        "lauantai"
-      ];
+      const dayMap = {
+        1: "MA",
+        2: "TI",
+        3: "KE",
+        4: "TO",
+        5: "PE",
+        6: "LA",
+        0: "SU"
+      };
 
-      const today = weekdays[new Date().getDay()];
+      const today = dayMap[new Date().getDay()];
 
-      const blocks = [
-        ...html.matchAll(
-          /<div class="content-lunch">([\s\S]*?)<\/div><!-- \.content-lunch -->/g
-        )
-      ];
-
-      const todayBlock = blocks.find(block =>
-        block[1].toLowerCase().includes(`<h3>${today}`)
+      const richTextMatch = html.match(
+        /<div class="rich-text-block w-richtext">([\s\S]*?)<\/div>/
       );
 
-      if (!todayBlock) {
+      if (!richTextMatch) {
         return ["Ruokalistaa ei löytynyt"];
       }
 
       const pTags = [
-        ...todayBlock[1].matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)
+        ...richTextMatch[1].matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)
       ]
         .map(m =>
           m[1]
             .replace(/<[^>]+>/g, "")
-            .replace(/\s+(LGM|LG|L|G|M|VEG|VEGAN)\s*$/gi, "")
+            .replace(/&amp;/g, "&")
             .trim()
         )
-                
         .filter(Boolean);
 
-      const start = pTags.findIndex(
-        x => x === "Pihlajasali"
-      );
+      const weekdays = ["MA", "TI", "KE", "TO", "PE", "LA", "SU"];
 
-      const end = pTags.findIndex(
-        x => x.includes("********")
+      const start = pTags.findIndex(
+        x => x.trim() === today
       );
 
       if (start === -1) {
         return ["Ruokalistaa ei löytynyt"];
       }
 
-      return pTags.slice(
-        start + 1,
-        end > start ? end : undefined
-      );
+      let end = pTags.length;
+
+      for (let i = start + 1; i < pTags.length; i++) {
+        if (weekdays.includes(pTags[i].trim())) {
+          end = i;
+          break;
+        }
+      }
+
+      return pTags
+        .slice(start + 1, end)
+
+        // poista allergeenit
+        .map(line =>
+          line
+            .replace(/\([^)]*\)/g, "")
+            .replace(/\s+/g, " ")
+            .trim()
+        )
+
+        // poista tyhjät
+        .filter(Boolean)
+
+        // poista tarjoukset
+        .filter(line =>
+          !line.toLowerCase().includes("viikon tarjous")
+        )
+
+        // poista tekniset rivit
+        .filter(line =>
+          !line.toLowerCase().includes("keittiöllä on oikeus")
+        );
 
     } catch (err) {
 
-      console.error("Diak fetch failed:", err);
+      console.error("Neste menu failed:", err);
 
       return ["Ruokalistaa ei saatavilla"];
     }
   }
+    
 
-  const [weather, hospitalMenu, diakMenu] =
+  const [weather, hospitalMenu, nesteMenu] =
     await Promise.all([
       fetchWeather(),
       fetchHospitalMenu(),
-      fetchDiakMenu()
+      fetchNesteMenu()
     ]);
 
   const iconUrl =
@@ -360,11 +380,11 @@ export default async function handler(req, res) {
       <div class="diak">
 
         <div class="section-title">
-          Pihlajasali
+          Neste Tiilimäki
         </div>
 
         <ul>
-          ${diakMenu.map(row => `
+          ${nesteMenu.map(row => `
             <li>${escapeHtml(row)}</li>
           `).join("")}
         </ul>
