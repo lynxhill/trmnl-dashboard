@@ -264,6 +264,23 @@ export default async function handler(req, res) {
       justify-content: space-between;
     }
 
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }  
+
+    .section-title {
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .menu-date {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
     .menu {
       width: 75%;
     }
@@ -357,16 +374,12 @@ export default async function handler(req, res) {
 
     <div class="menu">
 
-      <div class="section-title">
-        Tyrni
-      </div>
-
       ${hospitalMenu.map(item => `
-        <div class="item">
+        <div class="section-title">
+          Tyrni · ${escapeHtml(item.title)}
+        </div>
 
-          <div class="title">
-            ${escapeHtml(item.title)}
-          </div>
+        <div class="item">
 
           <ul class="menu-list">
             ${item.lines.map(line => `
