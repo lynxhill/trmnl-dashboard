@@ -376,8 +376,9 @@ export default async function handler(req, res) {
     <div class="menu">
 
       ${hospitalMenu.map(item => `
-        <div class="section-title">
-          Tyrni   ·   ${escapeHtml(item.title)}
+        <div class="header-row">
+          <div class="section-title">Tyrni</div>
+          <div class="menu-date">${escapeHtml(item.title)}</div>
         </div>
 
         <div class="item">
@@ -391,6 +392,7 @@ export default async function handler(req, res) {
         </div>
       `).join("")}
 
+      
       <div class="diak">
 
         <div class="section-title">
