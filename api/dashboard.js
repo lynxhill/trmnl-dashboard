@@ -376,7 +376,7 @@ export default async function handler(req, res) {
 
       ${hospitalMenu.map(item => `
         <div class="section-title">
-          "Tyrni   ·  " ${escapeHtml(item.title)}
+          Tyrni   ·   ${escapeHtml(item.title)}
         </div>
 
         <div class="item">
@@ -423,7 +423,6 @@ export default async function handler(req, res) {
 
         <div class="details">
           Tuntuu kuin: ${weather.feelsLike}°C<br>
-          Min / Max: ${weather.tempMin}° / ${weather.tempMax}°<br>
           Tuuli: ${weather.wind} m/s<br>
           Kosteus: ${weather.humidity}%<br>
           ${escapeHtml(weather.description)}
