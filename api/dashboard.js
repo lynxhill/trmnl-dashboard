@@ -258,12 +258,30 @@ export default async function handler(req, res) {
 
   .menu-row {
     display: grid;
-    grid-template-columns: 72px 170px minmax(0, 1fr);
+    grid-template-columns: 72px minmax(0, 1fr);
     align-items: center;
     gap: 16px;
-    min-height: 105px;
-    padding: 16px 0;
+    min-height: 90px;
+    padding: 12px 0;
     border-bottom: 1px solid #bdbdbd;
+  }
+
+  .menu-content {
+    min-width: 0;
+  }
+  
+  .menu-description {
+    font-size: 21px;
+    line-height: 1.3;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .menu-label {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 3px;
   }
 
   .menu-row:last-child {
@@ -380,7 +398,7 @@ export default async function handler(req, res) {
     }
 
     .menu-row {
-      grid-template-columns: 48px 110px minmax(0, 1fr);
+      grid-template-columns: 48px minmax(0, 1fr);
       gap: 10px;
     }
 
