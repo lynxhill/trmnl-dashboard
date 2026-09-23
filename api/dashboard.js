@@ -466,7 +466,7 @@ export default async function handler(req, res) {
        PIENEMMÄT NÄYTÖT
     ------------------------- */
 
-    @media (max-width: 800px) {
+    @media (max-width: 1200px) {
       body {
         padding: 8px;
       }
