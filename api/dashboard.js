@@ -15,11 +15,8 @@ export default async function handler(req, res) {
 
   function simplifyMenuLine(line = "") {
     return line
-      // Poista allergeenit
       .replace(/\([^)]*\)/g, "")
-      // Poista tähdet
       .replace(/\*/g, "")
-      // Siisti ruokalajien nimet
       .replace(/^Lounas\s*1\s*:/i, "1: ")
       .replace(/^Lounas\s*2\s*:/i, "2: ")
       .replace(/^Kasvislounas\s*:/i, "Kasvis: ")
@@ -29,7 +26,6 @@ export default async function handler(req, res) {
         /^Kahvio\s+Mocca\s+annossalaatti\s*:/i,
         "Mocca: "
       )
-      // Siisti välit
       .replace(/\s+/g, " ")
       .trim();
   }
@@ -139,10 +135,6 @@ export default async function handler(req, res) {
     }
   }
 
-  /*
-   * Ruokalajirivin tunnistus.
-   * Palauttaa otsikon, kuvauksen ja tyyliluokan.
-   */
   function parseMenuLine(line) {
     const patterns = [
       {
@@ -271,11 +263,14 @@ export default async function handler(req, res) {
 
     .dashboard {
       width: 100%;
-      min-height: 0;
+      min-height: calc(100vh - 28px);
+
       display: flex;
       align-items: stretch;
       gap: 18px;
-      padding: 18px 24px;
+
+      padding: 20px 24px;
+
       background: #fff;
       border: 2px solid #111;
       border-radius: 18px;
@@ -288,6 +283,9 @@ export default async function handler(req, res) {
     .menu {
       flex: 1;
       min-width: 0;
+
+      display: flex;
+      flex-direction: column;
     }
 
     .header-row {
@@ -295,8 +293,10 @@ export default async function handler(req, res) {
       align-items: baseline;
       justify-content: space-between;
       gap: 16px;
-      padding-bottom: 12px;
+
+      padding-bottom: 14px;
       margin-bottom: 4px;
+
       border-bottom: 3px solid #111;
     }
 
@@ -309,14 +309,14 @@ export default async function handler(req, res) {
 
     .brand-title {
       margin: 0;
-      font-size: 44px;
+      font-size: 46px;
       line-height: 1;
       font-weight: 700;
       letter-spacing: -1px;
     }
 
     .leaf {
-      font-size: 34px;
+      font-size: 35px;
       line-height: 1;
     }
 
@@ -328,8 +328,11 @@ export default async function handler(req, res) {
     }
 
     .menu-rows {
+      flex: 1;
+
       display: flex;
       flex-direction: column;
+      justify-content: space-evenly;
     }
 
     .menu-row {
@@ -337,8 +340,12 @@ export default async function handler(req, res) {
       grid-template-columns: 58px minmax(0, 1fr);
       align-items: center;
       gap: 12px;
+
+      flex: 1;
       min-height: 0;
-      padding: 12px 0;
+
+      padding: 13px 0;
+
       border-bottom: 1px solid #bdbdbd;
     }
 
@@ -353,11 +360,14 @@ export default async function handler(req, res) {
     .menu-icon {
       width: 50px;
       height: 50px;
+
       display: flex;
       align-items: center;
       justify-content: center;
+
       border: 2px solid #111;
       border-radius: 50%;
+
       font-size: 28px;
       font-weight: 700;
       line-height: 1;
@@ -381,15 +391,17 @@ export default async function handler(req, res) {
     }
 
     .menu-label {
-      margin-bottom: 2px;
-      font-size: 17px;
+      margin-bottom: 4px;
+
+      font-size: 18px;
       font-weight: 700;
-      line-height: 1.15;
+      line-height: 1.2;
     }
 
     .menu-description {
       font-size: 20px;
-      line-height: 1.25;
+      line-height: 1.3;
+
       overflow-wrap: break-word;
       word-break: normal;
     }
@@ -460,87 +472,6 @@ export default async function handler(req, res) {
     .weather-unavailable {
       margin-top: 40px;
       font-size: 18px;
-    }
-
-    /* -------------------------
-       PIENEMMÄT NÄYTÖT
-    ------------------------- */
-
-    @media (max-width: 1200px) {
-      body {
-        padding: 8px;
-      }
-
-      .dashboard {
-        gap: 12px;
-        padding: 14px;
-      }
-
-      .header-row {
-        gap: 8px;
-        padding-bottom: 10px;
-      }
-
-      .brand-title {
-        font-size: 34px;
-      }
-
-      .leaf {
-        font-size: 26px;
-      }
-
-      .menu-date {
-        font-size: 17px;
-      }
-
-      .menu-row {
-        grid-template-columns: 42px minmax(0, 1fr);
-        gap: 8px;
-        padding: 7px 0;
-      }
-
-      .menu-icon {
-        width: 38px;
-        height: 38px;
-        font-size: 21px;
-      }
-
-      .menu-label {
-        font-size: 15px;
-      }
-
-      .menu-description {
-        font-size: 16px;
-        line-height: 1.2;
-      }
-
-      .weather {
-        width: 160px;
-        padding: 14px 8px;
-      }
-
-      .location {
-        font-size: 20px;
-      }
-
-      .weather-icon {
-        min-height: 85px;
-        margin-top: 18px;
-      }
-
-      .weather-icon img {
-        width: 82px;
-        height: 82px;
-      }
-
-      .temp {
-        font-size: 42px;
-        margin-bottom: 14px;
-      }
-
-      .details {
-        font-size: 13px;
-      }
     }
   </style>
 </head>
