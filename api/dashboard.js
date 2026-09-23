@@ -292,9 +292,9 @@ export default async function handler(req, res) {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      gap: 16px;
+      gap: 10px;
 
-      padding-bottom: 14px;
+      padding-bottom: 12px;
       margin-bottom: 4px;
 
       border-bottom: 3px solid #111;
@@ -309,7 +309,7 @@ export default async function handler(req, res) {
 
     .brand-title {
       margin: 0;
-      font-size: 40px;
+      font-size: 35px;
       line-height: 1;
       font-weight: 700;
       letter-spacing: -1px;
@@ -339,7 +339,7 @@ export default async function handler(req, res) {
       display: grid;
       grid-template-columns: 58px minmax(0, 1fr);
       align-items: center;
-      gap: 12px;
+      gap: 8px;
 
       flex: 1;
       min-height: 0;
@@ -391,15 +391,15 @@ export default async function handler(req, res) {
     }
 
     .menu-label {
-      margin-bottom: 4px;
+      margin-bottom: 5px;
 
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       line-height: 1.2;
     }
 
     .menu-description {
-      font-size: 19px;
+      font-size: 18px;
       line-height: 1.3;
 
       overflow-wrap: break-word;
