@@ -421,7 +421,8 @@ export default async function handler(req, res) {
       text-align: center;
 
       background: #e5e5e5;
-      border: 3px solid #111;
+      border-left: 3px solid #111;
+      border-right: 3px solid #111;
       border-radius: 10px;
     }
 
