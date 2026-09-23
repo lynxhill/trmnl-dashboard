@@ -337,14 +337,14 @@ export default async function handler(req, res) {
 
     .menu-row {
       display: grid;
-      grid-template-columns: 58px minmax(0, 1fr);
+      grid-template-columns: 55px minmax(0, 1fr);
       align-items: center;
       gap: 8px;
 
       flex: 1;
       min-height: 0;
 
-      padding: 13px 0;
+      padding: 10px 0;
 
       border-bottom: 1px solid #bdbdbd;
     }
@@ -392,14 +392,13 @@ export default async function handler(req, res) {
 
     .menu-label {
       margin-bottom: 5px;
-
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       line-height: 1.2;
     }
 
     .menu-description {
-      font-size: 18px;
+      font-size: 15px;
       line-height: 1.3;
 
       overflow-wrap: break-word;
