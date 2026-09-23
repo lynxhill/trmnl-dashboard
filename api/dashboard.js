@@ -258,7 +258,7 @@ export default async function handler(req, res) {
     }
 
     body {
-      padding: 14px;
+      padding: 10px;
     }
 
     .dashboard {
@@ -309,19 +309,19 @@ export default async function handler(req, res) {
 
     .brand-title {
       margin: 0;
-      font-size: 35px;
+      font-size: 30px;
       line-height: 1;
       font-weight: 700;
-      letter-spacing: -1px;
+      letter-spacing: 1px;
     }
 
     .leaf {
-      font-size: 35px;
+      font-size: 30px;
       line-height: 1;
     }
 
     .menu-date {
-      font-size: 22px;
+      font-size: 20px;
       line-height: 1.2;
       font-weight: 700;
       white-space: nowrap;
