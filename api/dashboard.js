@@ -334,13 +334,11 @@ export default async function handler(req, res) {
 
     .menu-row {
       display: grid;
-      grid-template-columns: 54px minmax(0, 1fr);
+      grid-template-columns: 58px minmax(0, 1fr);
       align-items: center;
       gap: 12px;
-
       min-height: 0;
-      padding: 9px 0;
-
+      padding: 12px 0;
       border-bottom: 1px solid #bdbdbd;
     }
 
@@ -353,17 +351,14 @@ export default async function handler(req, res) {
     }
 
     .menu-icon {
-      width: 46px;
-      height: 46px;
-
+      width: 50px;
+      height: 50px;
       display: flex;
       align-items: center;
       justify-content: center;
-
       border: 2px solid #111;
       border-radius: 50%;
-
-      font-size: 26px;
+      font-size: 28px;
       font-weight: 700;
       line-height: 1;
     }
@@ -393,8 +388,8 @@ export default async function handler(req, res) {
     }
 
     .menu-description {
-      font-size: 19px;
-      line-height: 1.2;
+      font-size: 20px;
+      line-height: 1.25;
       overflow-wrap: break-word;
       word-break: normal;
     }
