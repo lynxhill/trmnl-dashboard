@@ -309,7 +309,7 @@ export default async function handler(req, res) {
 
     .brand-title {
       margin: 0;
-      font-size: 46px;
+      font-size: 40px;
       line-height: 1;
       font-weight: 700;
       letter-spacing: -1px;
@@ -368,7 +368,7 @@ export default async function handler(req, res) {
       border: 2px solid #111;
       border-radius: 50%;
 
-      font-size: 28px;
+      font-size: 25px;
       font-weight: 700;
       line-height: 1;
     }
@@ -393,13 +393,13 @@ export default async function handler(req, res) {
     .menu-label {
       margin-bottom: 4px;
 
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       line-height: 1.2;
     }
 
     .menu-description {
-      font-size: 20px;
+      font-size: 28px;
       line-height: 1.3;
 
       overflow-wrap: break-word;
@@ -411,7 +411,7 @@ export default async function handler(req, res) {
     ------------------------- */
 
     .weather {
-      width: 220px;
+      width: 200px;
       flex-shrink: 0;
 
       display: flex;
