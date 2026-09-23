@@ -258,7 +258,7 @@ export default async function handler(req, res) {
     }
 
     body {
-      padding: 10px;
+      padding: 8px;
     }
 
     .dashboard {
@@ -269,7 +269,7 @@ export default async function handler(req, res) {
       align-items: stretch;
       gap: 18px;
 
-      padding: 20px 24px;
+      padding: 20px 24px 10px;
 
       background: #fff;
       border: 2px solid #111;
