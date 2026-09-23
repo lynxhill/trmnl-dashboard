@@ -1,53 +1,35 @@
-export default async function handler(req, res) {
 
+export default async function handler(req, res) {
   const RSS_URL = process.env.RSS_URL;
   const WEATHER_KEY = process.env.WEATHER_KEY;
   const CITY = "Pori";
 
   function escapeHtml(str = "") {
-    return str
+    return String(str)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
-  
+
   function simplifyMenuLine(line = "") {
-
-  return line
-
-    // poista allergeenit
-    .replace(/\([^)]*\)/g, "")
-
-    // poista tähdet
-    .replace(/\*/g, "")
-
-    // siisti otsikot
-    .replace(/^Lounas\s*1\s*:/i, "1: ")
-    .replace(/^Lounas\s*2\s*:/i, "2: ")
-    .replace(/^Kasvislounas\s*:/i, "Kasvis: ")
-    .replace(/^Salaattilounas\s*:/i, "Salaatti: ")
-    .replace(/^Jälkiruoka\s*:/i, "Jälkiruoka: ")
-    .replace(/^Kahvio\s+Mocca\s+annossalaatti\s*:/i, "Mocca: ")
-    
-    // poista yleiset lisukkeet
-    //.replace(/,\s*Sitruunakastike/gi, "")
-    // .replace(/,\s*lounas/gi, "")
-    // .replace(/,\s*Lounas/gi, "")
-    //.replace(/,\s*Perunasose/gi, "")
-    //.replace(/,\s*Perunat/gi, "")
-    //.replace(/,\s*Riisi/gi, "")
-
-    // siisti välit
-    .replace(/\s+/g, " ")
-    .trim();
-    }
+    return line
+      .replace(/\([^)]*\)/g, "")
+      .replace(/\*/g, "")
+      .replace(/^Lounas\s*1\s*:/i, "1: ")
+      .replace(/^Lounas\s*2\s*:/i, "2: ")
+      .replace(/^Kasvislounas\s*:/i, "Kasvis: ")
+      .replace(/^Salaattilounas\s*:/i, "Salaatti: ")
+      .replace(/^Jälkiruoka\s*:/i, "Jälkiruoka: ")
+      .replace(/^Kahvio\s+Mocca\s+annossalaatti\s*:/i, "Mocca: ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
 
   async function safeFetch(url, timeout = 5000) {
     const controller = new AbortController();
-
-    const id = setTimeout(() => {
-      controller.abort();
-    }, timeout);
+    const id = setTimeout(() => controller.abort(), timeout);
 
     try {
       const response = await fetch(url, {
@@ -66,7 +48,6 @@ export default async function handler(req, res) {
 
   async function fetchWeather() {
     try {
-
       const response = await safeFetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&lang=fi&appid=${WEATHER_KEY}`
       );
@@ -80,16 +61,11 @@ export default async function handler(req, res) {
         description: weather?.weather?.[0]?.description ?? "",
         temp: Math.round(weather?.main?.temp ?? 0),
         feelsLike: Math.round(weather?.main?.feels_like ?? 0),
-        tempMin: Math.round(weather?.main?.temp_min ?? 0),
-        tempMax: Math.round(weather?.main?.temp_max ?? 0),
         wind: weather?.wind?.speed ?? "-",
         humidity: weather?.main?.humidity ?? "-"
       };
-
     } catch (err) {
-
       console.error("Weather fetch failed:", err);
-
       return {
         ok: false,
         name: CITY
@@ -98,25 +74,22 @@ export default async function handler(req, res) {
   }
 
   async function fetchHospitalMenu() {
-
     try {
-
       const response = await safeFetch(RSS_URL);
-
       const xml = await response.text();
 
       const firstItem =
         [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)][0];
 
-      if (!firstItem) {
-        return [];
-      }
+      if (!firstItem) return [];
 
       const title =
         firstItem[1].match(/<title>(.*?)<\/title>/)?.[1] ?? "";
 
       let desc =
-        firstItem[1].match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? "";
+        firstItem[1].match(
+          /<description>([\s\S]*?)<\/description>/
+        )?.[1] ?? "";
 
       desc = desc.replace(/<!\[CDATA\[|\]\]>/g, "");
       desc = desc.replace(/<br\s*\/?>/gi, "\n");
@@ -124,16 +97,11 @@ export default async function handler(req, res) {
 
       const lines = desc
         .split("\n")
-        .map(x => simplifyMenuLine(x))
+        .map(simplifyMenuLine)
         .filter(Boolean);
 
-      return [{
-        title,
-        lines
-      }];
-
+      return [{ title, lines }];
     } catch (err) {
-
       console.error("RSS fetch failed:", err);
 
       return [{
@@ -142,303 +110,358 @@ export default async function handler(req, res) {
       }];
     }
   }
-    
 
-
-  async function fetchNesteMenu() {
-
-    try {
-
-      const response = await safeFetch(
-        "https://www.nestetiilimaki.fi/"
-      );
-
-      const html = await response.text();
-
-      const dayMap = {
-        1: "MA",
-        2: "TI",
-        3: "KE",
-        4: "TO",
-        5: "PE",
-        6: "LA",
-        0: "SU"
-      };
-
-      const today = dayMap[new Date().getDay()];
-
-      const richTextMatch = html.match(
-        /<div class="rich-text-block w-richtext">([\s\S]*?)<\/div>/
-      );
-
-      if (!richTextMatch) {
-        return ["Ruokalistaa ei löytynyt"];
-      }
-
-      const pTags = [
-        ...richTextMatch[1].matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)
-      ]
-        .map(m =>
-          m[1]
-            .replace(/<[^>]+>/g, "")
-            .replace(/&amp;/g, "&")
-            .trim()
-        )
-        .filter(Boolean);
-
-      const weekdays = ["MA", "TI", "KE", "TO", "PE", "LA", "SU"];
-
-      const start = pTags.findIndex(
-        x => x.trim() === today
-      );
-
-      if (start === -1) {
-        return ["Ruokalistaa ei löytynyt"];
-      }
-
-      let end = pTags.length;
-
-      for (let i = start + 1; i < pTags.length; i++) {
-        if (weekdays.includes(pTags[i].trim())) {
-          end = i;
-          break;
-        }
-      }
-
-      return pTags
-        .slice(start + 1, end)
-
-        // poista allergeenit
-        .map(line =>
-          line
-            .replace(/\([^)]*\)/g, "")
-            .replace(/\s+/g, " ")
-            .trim()
-        )
-
-        // poista tyhjät
-        .filter(Boolean)
-
-        // poista tarjoukset
-        .filter(line =>
-          !line.toLowerCase().includes("viikon tarjous")
-        )
-
-        // poista tekniset rivit
-        .filter(line =>
-          !line.toLowerCase().includes("keittiöllä on oikeus")
-        );
-
-    } catch (err) {
-
-      console.error("Neste menu failed:", err);
-
-      return ["Ruokalistaa ei saatavilla"];
-    }
-  }
-    
-
-  const [weather, hospitalMenu, nesteMenu] =
-    await Promise.all([
-      fetchWeather(),
-      fetchHospitalMenu(),
-      fetchNesteMenu()
-    ]);
+  const [weather, hospitalMenu] = await Promise.all([
+    fetchWeather(),
+    fetchHospitalMenu()
+  ]);
 
   const iconUrl =
     weather.ok && weather.icon
       ? `https://openweathermap.org/img/wn/${weather.icon}@2x.png`
       : null;
 
-  res.setHeader("Content-Type", "text/html");
-
-  res.send(`
-  <html>
-  <head>
-  <style>
-
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      display: flex;
-      justify-content: space-between;
+  function getMenuType(line) {
+    if (/^1:/.test(line)) {
+      return { icon: "♨", label: "Lounas 1", type: "main" };
     }
 
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 40px;
-      margin-bottom: 10px;
-    }  
+    if (/^2:/.test(line)) {
+      return { icon: "♨", label: "Lounas 2", type: "main" };
+    }
 
-    .section-title {
+    if (/^Kasvis:/i.test(line)) {
+      return { icon: "♧", label: "Kasvis", type: "vegetarian" };
+    }
+
+    if (/^Salaatti:/i.test(line)) {
+      return { icon: "❋", label: "Salaatti", type: "salad" };
+    }
+
+    if (/^Jälkiruoka:/i.test(line)) {
+      return { icon: "✿", label: "Jälkiruoka", type: "dessert" };
+    }
+
+    if (/^Mocca:/i.test(line)) {
+      return { icon: "☕", label: "Mocca", type: "other" };
+    }
+
+    return { icon: "•", label: "", type: "other" };
+  }
+
+  function menuItemHtml(line) {
+    const info = getMenuType(line);
+    let description = line;
+
+    if (info.label) {
+      description = line.replace(
+        new RegExp("^" + info.label + "\\s*:?\\s*", "i"),
+        ""
+      );
+
+      // Säilytä alkuperäinen numerointi muodossa 1: / 2:
+      if (info.label === "Lounas 1") {
+        description = line.replace(/^1:\s*/, "");
+      } else if (info.label === "Lounas 2") {
+        description = line.replace(/^2:\s*/, "");
+      }
+    }
+
+    return `
+      <div class="menu-row ${info.type}">
+        <div class="menu-icon">${info.icon}</div>
+        <div class="menu-content">
+          <div class="menu-label">${escapeHtml(info.label)}</div>
+          <div class="menu-description">${escapeHtml(description)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+
+  res.send(`
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #111;
+    background: #f2f2f2;
+  }
+
+  .dashboard {
+    width: 100%;
+    min-height: 650px;
+    display: flex;
+    gap: 28px;
+    padding: 30px;
+    background: #fff;
+    border: 2px solid #111;
+    border-radius: 18px;
+  }
+
+  .menu {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 20px;
+    margin-bottom: 12px;
+    border-bottom: 3px solid #111;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-title {
+    margin: 0;
+    font-size: 48px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+
+  .leaf {
+    font-size: 42px;
+    line-height: 1;
+  }
+
+  .menu-date {
+    font-size: 24px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .menu-rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .menu-row {
+    display: grid;
+    grid-template-columns: 72px 170px minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    min-height: 105px;
+    padding: 16px 0;
+    border-bottom: 1px solid #bdbdbd;
+  }
+
+  .menu-row:last-child {
+    border-bottom: none;
+  }
+
+  .menu-icon {
+    width: 62px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #111;
+    border-radius: 50%;
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .menu-label {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .menu-description {
+    font-size: 22px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .main .menu-icon {
+    background: #111;
+    color: #fff;
+  }
+
+  .vegetarian .menu-icon {
+    border-style: dashed;
+  }
+
+  .salad .menu-icon {
+    border-radius: 14px;
+  }
+
+  .dessert .menu-icon {
+    border-radius: 50% 50% 14px 14px;
+  }
+
+  .weather {
+    width: 230px;
+    flex-shrink: 0;
+    padding: 24px 18px;
+    text-align: center;
+    background: #e5e5e5;
+    border-left: 3px solid #111;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .location {
+    width: 100%;
+    text-align: right;
+    font-size: 25px;
+    font-weight: 700;
+  }
+
+  .weather-icon {
+    margin-top: 45px;
+    min-height: 125px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .weather-icon img {
+    width: 115px;
+    height: 115px;
+    object-fit: contain;
+    filter: grayscale(100%) contrast(180%);
+  }
+
+  .temp {
+    margin: 8px 0 20px;
+    font-size: 58px;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  .details {
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .weather-description {
+    margin-top: 6px;
+    font-weight: 600;
+  }
+
+  .weather-unavailable {
+    margin-top: 50px;
+    font-size: 18px;
+  }
+
+  @media (max-width: 800px) {
+    body {
+      padding: 10px;
+    }
+
+    .dashboard {
+      padding: 18px;
+      gap: 16px;
+    }
+
+    .menu-row {
+      grid-template-columns: 48px 110px minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .menu-icon {
+      width: 44px;
+      height: 44px;
       font-size: 24px;
-      margin: 0;
+    }
+
+    .menu-description {
+      font-size: 17px;
+    }
+
+    .menu-label {
+      font-size: 16px;
+    }
+
+    .weather {
+      width: 170px;
+      padding: 16px 10px;
+    }
+
+    .brand-title {
+      font-size: 36px;
+    }
+
+    .leaf {
+      font-size: 30px;
     }
 
     .menu-date {
       font-size: 18px;
-      font-weight: bold;
     }
+  }
+</style>
+</head>
 
-    .menu {
-      width: 75%;
-    }
-
-    .section-title {
-      font-size: 24px;
-      margin-bottom: 13px;
-    }
-
-    .item {
-      margin-bottom: 13px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid black;
-    }
-
-    .title {
-      font-weight: bold;
-      font-size: 18px;
-      margin-bottom: 6px;
-    }
-
-    .desc {
-      font-size: 15px;
-      line-height: 1.4;
-      white-space: pre-line;
-    }
-
-    .weather {
-      width: 17%;
-      text-align: right;
-      background: #DDDDDD;
-      padding: 20px;
-    }
-
-    .location {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .icon {
-      margin: 10px 0;
-      background: #DDDDDD;
-      padding: 10px;
-    }
-
-    .icon img {
-      width: 100px;
-      filter: grayscale(100%) contrast(200%);
-    }
-
-    .temp {
-      font-size: 42px;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-
-    .details {
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .diak {
-      margin-top: 16px;
-    }
-
-    .diak ul {
-      margin: 0;
-      padding-left: 20px;
-    }
-
-    .diak li {
-      margin-bottom: 6px;
-      font-size: 15px;
-    }
-
-    .menu-list {
-      margin: 0;
-      padding-left: 10px;
-    }
-
-    .menu-list li {
-      margin-bottom: 8px;
-      font-size: 16px;
-      line-height: 1.3;
-    }
-
-  </style>
-  </head>
-
-  <body>
-
-    <div class="menu">
-
+<body>
+  <div class="dashboard">
+    <main class="menu">
       ${hospitalMenu.map(item => `
-        <div class="header-row">
-          <div class="section-title">Tyrni</div>
+        <header class="header-row">
+          <div class="brand">
+            <h1 class="brand-title">Tyrni</h1>
+            <span class="leaf" aria-hidden="true">♧</span>
+          </div>
           <div class="menu-date">${escapeHtml(item.title)}</div>
-        </div>
+        </header>
 
-        <div class="item">
-
-          <ul class="menu-list">
-            ${item.lines.map(line => `
-              <li>${escapeHtml(line)}</li>
-            `).join("")}
-          </ul>
-
-        </div>
+        <section class="menu-rows">
+          ${item.lines.map(menuItemHtml).join("")}
+        </section>
       `).join("")}
+    </main>
 
-      
-      <div class="diak">
-
-        <div class="section-title">
-          Neste Tiilimäki
-        </div>
-
-        <ul>
-          ${nesteMenu.map(row => `
-            <li>${escapeHtml(row)}</li>
-          `).join("")}
-        </ul>
-
-      </div>
-
-    </div>
-
-    <div class="weather">
-
-      <div class="location">
-        ${escapeHtml(weather.name)}
-      </div>
+    <aside class="weather">
+      <div class="location">${escapeHtml(weather.name)}</div>
 
       ${iconUrl ? `
-        <div class="icon">
-          <img src="${iconUrl}" />
+        <div class="weather-icon">
+          <img src="${iconUrl}" alt="${escapeHtml(weather.description)}">
         </div>
 
-        <div class="temp">
-          ${weather.temp}°C
-        </div>
+        <div class="temp">${weather.temp}°C</div>
 
         <div class="details">
           Tuntuu kuin: ${weather.feelsLike}°C<br>
           Tuuli: ${weather.wind} m/s<br>
-          Kosteus: ${weather.humidity}%<br>
-          ${escapeHtml(weather.description)}
+          Kosteus: ${weather.humidity}%
+          <div class="weather-description">
+            ${escapeHtml(weather.description)}
+          </div>
         </div>
       ` : `
-        <div class="details">
+        <div class="weather-unavailable">
           Säätietoja ei saatavilla
         </div>
       `}
-
-    </div>
-
-  </body>
-  </html>
+    </aside>
+  </div>
+</body>
+</html>
   `);
 }
