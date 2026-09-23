@@ -399,7 +399,7 @@ export default async function handler(req, res) {
     }
 
     .menu-description {
-      font-size: 28px;
+      font-size: 19px;
       line-height: 1.3;
 
       overflow-wrap: break-word;
