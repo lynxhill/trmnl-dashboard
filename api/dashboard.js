@@ -258,7 +258,7 @@ export default async function handler(req, res) {
     }
 
     body {
-      padding: 8px;
+      padding: 4px;
     }
 
     .dashboard {
